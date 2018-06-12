@@ -1,0 +1,5 @@
+oid,user,time,email,password,confirm,prefix,fname,lname,organization,address,city,zip,country,phone,type,abstract,url,logo,plan,electricity,description,sound,light,shipping,option
+num,text,datetime,emal,password,num,text,text,text,text,text,text,text,csv,text,csv,file,text,file,file,textarea,textarea,csv,csv,textarea,textarea
+,,,1,,,1,1,1,1,1,1,1,1,1,2,2,1,2,,3,,3,3,3,3
+,,,E-Mail Address,,,Prefix,First (Given) Name,Last (Family) Name,Organization,Address,City,Zip / Postal Code,Country / Region,Phone Number,Type of Sponsorship,Advertisment Image on Abstract,URL,Your Logo,,,,Sound Condition,Light Condition,Shipping Information,Comments
+,,,ex: myname@example.com,,,,,,"ex: WHC19 Co., Ltd.",ex: Street Address,City,,,Country Code - Area Code - Phone Number,,,,,,,,,,,
