@@ -1,27 +1,17 @@
 <?php
 // Settings
 $folder = "./files";
-$conf = "Conference Name";
-$sys = "Registraiton System";
-$emailFrom = "user@example.com";
-$cidSalt = "hogehoge";
+$conf = "Conference title";
+$sys = "System name";
+$emailFrom = "contact email address";
+$cidSalt = "arbitrary code";
+$formatsheet = "https://docs.google.com/spreadsheets/d/1fbXyLrg8tC-_bmSvnR4q9jReZlSJ0MpCh_w6S8tkZho";
 
 
-// mbstring:TODO
 mb_language("en");
 mb_internal_encoding("UTF-8");
 
 //-----------------------------------------------------------------------------
-//	関数定義部。
-  /**
-     * ファイルポインタから行を取得し、CSVフィールドを処理する
-     * @param resource handle
-     * @param int length
-     * @param string delimiter
-     * @param string enclosure
-     * @return ファイルの終端に達した場合を含み、エラー時にFALSEを返します。
-     */
-
 // Is there $user in the Database?
 function is_user_exists($fname, $user){
     $csv = loadCsv($fname);
@@ -58,7 +48,7 @@ function fgetcsv_reg (&$handle, $length = null, $d = ',', $e = '"') {
     return empty($_line) ? false : $_csv_data;
 }
 
-//	SJISのCsvをロードする。EUC-JPに変換して2次元配列にして返す。
+//	Load csv file and convert to EUC-JP encode
 function loadCsv($fname){
 	$utf8 = @file_get_contents($fname);
 	$buf = mb_convert_encoding($utf8, "EUC-JP", "UTF8");
@@ -72,7 +62,7 @@ function loadCsv($fname){
 	return $csv;
 }
 
-//	2次元配列をSJISのCsvにセーブする。
+// Save as UTF8
 function saveCsv($fname, $csv){
 	$eucname = "$fname".".save.euc.csv";
 	$fpSave = fopen($eucname, "w");
@@ -82,7 +72,7 @@ function saveCsv($fname, $csv){
 	file_put_contents($fname, $save);
 }
 
-// rename file and upload
+// Rename file and upload
 function upload($type){
 	global $record, $folder;
 	if (isset($_FILES[$type])){
@@ -102,7 +92,28 @@ function upload($type){
 	return false;
 }
 
-//Linke for current file
+// Update format
+function manage($type){
+	global $record, $folder;
+	if (isset($_FILES[$type])){
+		$ext = strrchr($_FILES["$type"]["name"], ".");
+		//if ($ext == "csv"){
+		    $base = "$folder/" . $type;
+    		    $tmp = "$folder/" . "tmp_". $type;
+		    $name = $base . $ext;
+ 		    $old = glob("$base.*");
+		    foreach($old as $f) unlink($f);
+		    move_uploaded_file($_FILES["$type"]["tmp_name"], $tmp);
+		    if (file_exists($tmp)){
+		        rename($tmp, $name);
+			return true;
+		    }
+               // }
+	}
+	return false;
+}
+
+// Link for current file
 function linkToFile($type){
 	global $record, $folder;
 	if (sizeof(glob("$folder/".$record["oid"].$type.".*"))>0){
@@ -110,7 +121,7 @@ function linkToFile($type){
 	}
 }
 
-//DEBUG: check array
+// DEBUG: check array
 function printArray($a){
 	if (is_array($a)){
 		foreach($a as $k=>$v){
@@ -128,7 +139,7 @@ function getCid($oid){
 	return md5($oid.$cidSalt);
 }
 
-//get position of key from csv
+// Get position of key from csv
 function getPosFromKey($key, $csv){
 	if(!is_array(@$csv[0])) return -1;
 	foreach($csv[0] as $k=>$v){
@@ -137,7 +148,7 @@ function getPosFromKey($key, $csv){
 	return -1;
 }
 
-//get ordered item at line in csv
+// Get ordered item at line in csv
 function getItems($line, $csv){
 	if(!is_array(@$csv[0])) return -1;
         $i=0;
@@ -151,12 +162,21 @@ function getItems($line, $csv){
 	return $items;
 }
 
+// Get item at line in csv
+function getAllItems($line, $csv){
+	if(!is_array(@$csv[0])) return -1;
+        $items = array();
+	foreach($csv[$line] as $v){
+                $items[] = $v;
+	}
+	return $items;
+}
 
-//get record of cid
+// Get record of cid
 function getRecord($cid, $csv){
 	$oidPos = getPosFromKey("oid", $csv);
-	$record=NULL;
-	$row=-1;
+	$record = NULL;
+	$row = -1;
 	if(!is_array(@$csv)) return NULL;
 	foreach($csv as $key => $r){
 		$c = getCid($r[$oidPos]);
@@ -168,7 +188,7 @@ function getRecord($cid, $csv){
 			$record = $r;
 			$row = $key;
 		}
-		//	次のコメントを解除すると、cidの一覧を表示します。
+		//	please uncomment to show cid list
 		//	echo $r[$oidPos]. " => $cid<br>\n";
 	}
 	if (!$record) return NULL;
@@ -180,7 +200,7 @@ function getRecord($cid, $csv){
 	return $rv;
 }
 
-//save record
+// Save record
 function saveRecord(&$csv, $record){
 	$row = $record['row'];
 	foreach($csv[0] as $col => $key){
@@ -215,7 +235,7 @@ function lock(){
 	flock($fpLock, LOCK_EX);
 }
 
-//Unlock file
+// Unlock file
 function unlock(){
 	global $fpLock;
 	if ($fpLock){
@@ -225,7 +245,7 @@ function unlock(){
 	$fpLock = NULL;
 }
 
-//Get select option from csv file
+// Get select option from csv file
 function getOption($fname, $value){
     $body="";
     $csv = loadCsv($fname);
@@ -244,6 +264,7 @@ function getOption($fname, $value){
     return $body;
 }
 
+// Get label
 function getLabel($fname, $value){
     $csv = loadCsv($fname);
     foreach($csv as $r){
@@ -253,8 +274,6 @@ function getLabel($fname, $value){
     }
     return -1;
 }
-
-
 
 //------------------------------------------------------------------------------
 ?>

@@ -6,7 +6,7 @@ $record = getRecord(@$_GET["cid"], $csv);
 
 $msg="";
 $jump="";
-//cidを探す
+// Search cid
 if ($record){
     if (isset($_POST["reset"])){
         if(!preg_match("/\A(?=.*?[a-z])(?=.*?\d)[!-~]{5,20}+\z/i", $_POST["pass"])){
@@ -19,13 +19,13 @@ if ($record){
         	saveCsv("$folder/submission.csv", $csv);
         	unlock();
         	$msg='<div class="alert alert-success" role="alert">Password was successfully updated. Automatically jump to the login page.</div>';
-        	//ログインページへ
+        	// Jump to login page
         	$jump='<meta http-equiv="refresh" content="5; URL=./">';
 	}
     }
 }else{
     $msg='<div class="alert alert-danger" role="alert">Invaild URL. Automatically jump to the login page.</div>';
-    //ログインページへ
+    // Jump to login page
     $jump='<meta http-equiv="refresh" content="2; URL=./">';
 }
 ?>

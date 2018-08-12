@@ -5,7 +5,7 @@ $csv = loadCsv("$folder/submission.csv");
 $record = getRecord(@$_GET["cid"], $csv);
 
 $msg="";
-//cidを探す
+// Search cid
 if ($record){
     if ($record["confirm"]!=1){
         lock();

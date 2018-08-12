@@ -39,7 +39,7 @@ if (isset($_POST["create"])){
 			$record[$oidPos] = $oid;
 			$record[$emailPos] =  htmlspecialchars($_POST["email"]);
 			$record[$timePos] = htmlspecialchars(date("n/j/Y G:i:s"));
-			$record[$passPos] = password_hash($_POST['pass'], PASSWORD_DEFAULT);
+			$record[$passPos] = crypt($_POST['pass']);
 			array_push($csv, $record);
 			saveCsv("$folder/submission.csv", $csv);
 			unlock();
@@ -54,7 +54,7 @@ if (isset($_POST["create"])){
 			fclose($fp);
 	
 			//Generate mail body
-			$url = "http://" . $_SERVER['HTTP_HOST'];//TODO secure
+			$url = "https://" . $_SERVER['HTTP_HOST'];
 			$url .= substr($_SERVER['REQUEST_URI'], 0, strrpos($_SERVER['REQUEST_URI'], "/"));
 			$url .= "/confirm.php?cid=" . getCid($oid);
 			$from = $emailFrom;
@@ -96,9 +96,8 @@ if (isset($_POST["login"])){
 		$confirm = $csv[$uid][$confirmPos];
 		$oid = $csv[$uid][$oidPos];
 		if($confirm==1){
-			if(password_verify($_POST['pass'], $pass)){
-				//TODOログイン後のフォームに移動
-		        	$url = "http://" . $_SERVER['HTTP_HOST'];//TODO secure
+			if(crypt($_POST['pass'],$pass) === $pass){
+		        	$url = "https://" . $_SERVER['HTTP_HOST'];
 		        	$url .= substr($_SERVER['REQUEST_URI'], 0, strrpos($_SERVER['REQUEST_URI'], "/"));
 		        	$url .= "/home.php";
 		        	$_SESSION['user'] = $oid;
@@ -124,7 +123,7 @@ if (isset($_POST["reset"])){
 		$csv = loadCsv("$folder/submission.csv");
 		$oidPos = getPosFromKey("oid", $csv);
 		$oid = $csv[$uid][$oidPos];
-		$url = "http://" . $_SERVER['HTTP_HOST'];//TODO secure
+		$url = "https://" . $_SERVER['HTTP_HOST'];
 		$url .= substr($_SERVER['REQUEST_URI'], 0, strrpos($_SERVER['REQUEST_URI'], "/"));
 		$url .= "/reset.php?cid=" . getCid($oid);
 		$from = $emailFrom;
@@ -153,7 +152,10 @@ if (isset($_POST["reset"])){
 <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
 <link rel="stylesheet" type="text/css" href="style.css">
 <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+
+<title><?php echo $sys;?></title>
 </head>
+
 
 <body>
 <div class="container">
@@ -181,14 +183,15 @@ If you are unsure about whether or not you have an account, or have forgotten yo
 <div class="form-group">
 <div class="row">
 <div class="col-xs-4"><label>Password</label></div>
-<div class="col-xs-6"><input type="password" class="form-control" name="pass">
-<button type="submit" name="reset" class="btn btn-default">Reset Password</button></div>
+<div class="col-xs-6"><input type="password" class="form-control" name="pass"></div>
 </div>
 </div>
 
 <div class="form-group">
 <div class="row">
 <div class="col-xs-4"><button type="submit" name="login" class="btn btn-primary">Log In</button></div>
+<div class="col-xs-6"></div>
+<div class="col-xs-2"><button type="submit" name="reset" class="btn btn-default">Reset Password</button></div>
 </div>
 </div>
 

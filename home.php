@@ -8,24 +8,26 @@ if(!isset($_SESSION['user'])) {
   exit;
 }
 
-//ユーザファイルを読む
+// Load user file
 $cid = getCid($_SESSION['user']);
 $csv = loadCsv("$folder/submission.csv");
 $record = getRecord($cid, $csv);
 $email = $record["email"];
 $user = $record["user"];
 
-//フォーマットファイルを読む
+// Load format file
 $format = loadCsv("$folder/format.csv");
 $items = getItems(0, $format);
 $types = getItems(1, $format);
 $segments = getItems(2, $format);
 $titles = getItems(3, $format);
 $placeholders = getItems(4, $format);
+$explanations = getItems(5, $format);
+$mandatories = getItems(6, $format); 
 
 $sections = array("Contact", "Sponsorship", "Exhibition");
 
-//データベースからitemを取得
+// Get item from database
 foreach($items as $item){
     $value[]=$record["$item"];
 }
@@ -64,13 +66,14 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             }else{
                     lock();
            	    $record["time"] = date("n/j/Y G:i:s");
+                    if(empty($record["priority"])){$record["priority"] = date("n/j/Y G:i:s");}
                     $i = 0;
                     foreach($items as $item){
                         if($types[$i] == "file"){
                            if($_FILES["$item"]["name"]!=""){
                                 $file = upload("$item");
                                 if ($item!=false){
-      		                   $url = "http://" . $_SERVER['HTTP_HOST'];//TODO secure
+      		                   $url = "https://" . $_SERVER['HTTP_HOST'];
    	                           $url .= substr($_SERVER['REQUEST_URI'], 0, strrpos($_SERVER['REQUEST_URI'], "/"));
            	                    $record["$item"] = htmlspecialchars($url."/$file");
                                 }
@@ -102,6 +105,9 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
 <link rel="stylesheet" type="text/css" href="style.css">
 <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+
+
+<title><?php echo $sys;?></title>
 </head>
 
 
@@ -109,7 +115,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-        <script>
+<script type="text/javascript">
 $(document).on('change', ':file', function() {
     var input = $(this),
     numFiles = input.get(0).files ? input.get(0).files.length : 1,
@@ -117,6 +123,7 @@ $(document).on('change', ':file', function() {
     input.parent().parent().next(':text').val(label);
 });
 </script>
+
 
 <nav class="navbar navbar-default">
 	<div class="container-fluid">
@@ -154,7 +161,22 @@ while($i<max($segments)){
 </nav>
 
 <div class="container">
-<h2>Please provide the following information</h2>
+<div class="row">
+<div class="col-xs-1">
+</div>
+<div class="col-xs-10">
+<h2>Title</h2>
+
+<p>
+Please provide explanation here.
+</p>
+
+
+</div>
+<div class="col-xs-1">
+</div>
+</div>
+
 
 <div class="row">
 <?php echo $msg;?>
@@ -171,19 +193,34 @@ while($cnt<max($segments)){
     foreach($items as $item){
         if( $segments[$i] == $cnt + 1){
         $out.='<div class="form-group"><div class="row">';        
-        $out.='<div class="col-xs-4"><label>'.$titles[$i].'</label></div>';
-        $out.='<div class="col-xs-6">';
+        $out.='<div class="col-xs-4"><label>'.$titles[$i];
+        if($mandatories[$i]){
+            $out.='<p class="text-danger">*</p>';
+        }
+        $out.='</label>';
+        if($explanations[$i]!=""){
+                $out.="<br>$explanations[$i]";
+        }
+        $out.='</div><div class="col-xs-6">';
         if($types[$i] == "csv"){
             $out.='<select class="form-control" name="'.$item.'">';
             $out.=getOption("$folder/$item.csv",$value[$i]);
             $out.='</select>';
-        }else if($types[$i] == "file"){//最大サイズを確認しておいたほうが良い
-            $out.='<input type="hidden"  class="form-control" name="MAX_FILE_SIZE" value="<?php echo 40*1024*1024?>" />';
+        }else if($types[$i] == "file"){
+            $out.='<input type="hidden"  class="form-control" name="MAX_FILE_SIZE" value="<?php echo 40*1024*1024?>"';
+            if($mandatories[$i]){
+                $out.='required aria-required="true"';
+            }
+            $out.='/>';
             $out.='<label class="input-group-btn"><span class="btn btn-primary">Choose File<input type="file"  class="form-control" name="'.$item.'" style="display:none" size=40></span></label><input type="text" class="form-control" readonly="">'.linkToFile("$item");
         }else if($types[$i] == "textarea"){
             $out.='<textarea class="form-control" name="'.$item.'" rows="5" placeholder="'.$placeholders[$i].'">'.$value[$i].'</textarea>';
         }else{
-            $out.='<input type="'.$type.'" class="form-control" name="'.$item.'" placeholder="'.$placeholders[$i].'" value="'.$value[$i].'">';
+            $out.='<input type="'.$type.'" class="form-control" name="'.$item.'" placeholder="'.$placeholders[$i].'" value="'.$value[$i].'"';
+            if($mandatories[$i]){
+                $out.='required aria-required="true"';
+            }
+            $out.='>';
         }
         $out.='</div>';
         $out.='</div></div>';
@@ -198,8 +235,6 @@ echo $out;
 
 ?>
     </form>
-</div>
-<div class="form-style-2">
 </div>
 </body>
 </html>
