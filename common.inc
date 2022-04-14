@@ -1,14 +1,19 @@
 <?php
 // Settings
 $folder = "./files";
-$conf = "Conference title";
-$sys = "System name";
-$emailFrom = "contact email address";
+$conf = "SICE SI 2021";
+$sys = "SICE システムインテグレーション講演会2021 企業展示申込情報編集システム";
+$emailFrom = "saga@cs.kumamoto-u.ac.jp";
+
+$hometitle = $sys;
+$homeexplanation = "本システムはSICE システムインテグレーション講演会2021 企業展示申込情報編集システム です．申込情報は締切まで編集可能ですので適宜，情報の編集/更新をよろしくおねがいします．";
+
 $cidSalt = "arbitrary code";
 $formatsheet = "https://docs.google.com/spreadsheets/d/1fbXyLrg8tC-_bmSvnR4q9jReZlSJ0MpCh_w6S8tkZho";
 
 
-mb_language("en");
+//mb_language("en");
+mb_language("ja");
 mb_internal_encoding("UTF-8");
 
 //-----------------------------------------------------------------------------
@@ -51,7 +56,8 @@ function fgetcsv_reg (&$handle, $length = null, $d = ',', $e = '"') {
 //	Load csv file and convert to EUC-JP encode
 function loadCsv($fname){
 	$utf8 = @file_get_contents($fname);
-	$buf = mb_convert_encoding($utf8, "EUC-JP", "UTF8");
+	//$buf = mb_convert_encoding($utf8, "EUC-JP", "UTF8");
+	$buf = mb_convert_encoding($utf8, "UTF8");
 	$fp = tmpfile();
 	fwrite($fp, $buf);
 	rewind($fp);
@@ -68,7 +74,8 @@ function saveCsv($fname, $csv){
 	$fpSave = fopen($eucname, "w");
 	foreach($csv as $r) fputcsv($fpSave, $r);
 	fclose($fpSave);
-	$save = mb_convert_encoding(file_get_contents($eucname), "UTF8", "EUC-JP");
+	//$save = mb_convert_encoding(file_get_contents($eucname), "UTF8", "EUC-JP");
+	$save = mb_convert_encoding(file_get_contents($eucname), "UTF8");
 	file_put_contents($fname, $save);
 }
 
@@ -212,12 +219,12 @@ function saveRecord(&$csv, $record){
 // Lock file
 function lock(){
 	global $fpLock, $folder;
-	$fpLock = @fopen("$folder/lock.txt", "w");
+	$fpLock = @fopen("$folder/lock.txt", "r+");
 	$count = 0;
 	while(!$fpLock){
 		//	echo 'lock() .. fopen("$folder/lock.txt", "w") failed.<br>\n';
 		usleep(100*1000);
-		$fpLock = @fopen("$folder/lock.txt", "w");
+		$fpLock = @fopen("$folder/lock.txt", "r+");
 		$count ++;
 		if ($count++ > 50){	//Wait for 5 sec
 			?>

@@ -19,7 +19,7 @@ $cid = getCid($_SESSION['user']);
 $csv = loadCsv("$folder/submission.csv");
 $record = getRecord($cid, $csv);
 
-if($record['user']!=admin) {
+if($record['user']!='admin') {
   header("Location: index.php");
   exit;
 }
@@ -41,7 +41,12 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 	$files = glob("$folder/submission.csv");
 	if (function_exists('mime_content_type')){
 		header("Content-type: ". mime_content_type($files[0]));
-	}
+	}else{
+        $finfo = new finfo(FILEINFO_MIME);
+        $type  = $finfo->file($files[0]);
+        header("Content-type: ". $type);
+    }
+    
 	header("Content-Disposition: attachment; filename=".$files[0]);
 	readfile($files[0]);
         header("Location: view.php");
@@ -68,6 +73,7 @@ $(document).on('change', ':file', function() {
     input.parent().parent().next(':text').val(label);
 });
 </script>
+    <title><?php echo $sys;?></title>
 </head>
 
 <body>
