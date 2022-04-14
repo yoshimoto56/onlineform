@@ -138,7 +138,7 @@ if (isset($_POST["reset"])){
 		if (mb_send_mail($to, $title, $body, "From: $from")){
 			$msg='<div class="alert alert-success" role="alert">An email has been sent to '.$email.' to reset your password.</div>';
 		}else{
-			$msg='<div class="alert alert-danger" role="alert">Invalid email address.</div>';
+			$msg='<div class="alert alert-danger" role="alert">Unsent. Please contact administrator</div>';
 		}
 	}
 }
@@ -165,8 +165,12 @@ if (isset($_POST["reset"])){
 <div class="row">
 <div class="col-xs-12">
 <p>
+まずはメールアドレスとパスワードを入力してログインしてください．未登録アドレスの場合は新規登録されます．<br/>
+<!--
 To begin, log in with your email address and password.<br>
 If you are unsure about whether or not you have an account, or have forgotten your password, go to the Reset Password screen.
+-->
+	
 </p>
 </div>
 </div>
